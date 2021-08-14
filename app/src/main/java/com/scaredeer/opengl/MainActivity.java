@@ -76,20 +76,20 @@ public class MainActivity extends AppCompatActivity implements GLSurfaceView.Ren
     private int uColor;
 
     private static final String VERTEX_SHADER = String.format(
-            "uniform mat4 u_MVPMatrix;\n" +
-            "attribute vec4 a_Position;\n" +
+            "uniform mat4 %s;\n" +
+                    "attribute vec4 %s;\n" +
                     "void main() {\n" +
                     "    gl_Position = %s * %s;\n" +
                     "}",
-            U_MVP_MATRIX, A_POSITION
+            U_MVP_MATRIX, A_POSITION, U_MVP_MATRIX, A_POSITION
     );
     private static final String FRAGMENT_SHADER = String.format(
             "precision mediump float;\n" +
-                    "uniform vec4 u_Color;\n" +
+                    "uniform vec4 %s;\n" +
                     "void main() {\n" +
                     "    gl_FragColor = %s;\n" +
                     "}",
-            U_COLOR
+            U_COLOR, U_COLOR
     );
 
     private final float[] mProjectionMatrix = new float[16];
