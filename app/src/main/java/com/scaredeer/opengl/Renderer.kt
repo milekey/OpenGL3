@@ -24,7 +24,7 @@ class Renderer : GLSurfaceView.Renderer {
         private const val STRIDE = POSITION_COMPONENT_COUNT * BYTES_PER_FLOAT
         private val TILE = floatArrayOf(
             // x, y
-            0f, 0f,  // 左下
+            0f, 0f,    // 左下
             0f, 256f,  // 左上
             256f, 0f,  // 右下
             256f, 256f // 右上
