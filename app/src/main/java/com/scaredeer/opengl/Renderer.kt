@@ -14,6 +14,7 @@ class Renderer : GLSurfaceView.Renderer {
 
     companion object {
         private val TAG = Renderer::class.simpleName
+
         private const val BYTES_PER_FLOAT = 4 // Java float is 32-bit = 4-byte
         private const val POSITION_COMPONENT_COUNT = 2 // x, y（※ z は常に 0 なので省略）
 
