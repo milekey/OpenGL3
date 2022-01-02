@@ -180,8 +180,8 @@ class Renderer : GLSurfaceView.Renderer {
         .asFloatBuffer()
         .put(TILE)
 
-    private var aPosition = 0
     private var uMvpMatrix = 0
+    private var aPosition = 0
     private var uColor = 0
 
     private val projectionMatrix = FloatArray(16)
@@ -202,13 +202,8 @@ class Renderer : GLSurfaceView.Renderer {
 
         // Use this program.
         glUseProgram(program)
-
-        // Retrieve uniform locations for the shader program.
         uMvpMatrix = glGetUniformLocation(program, U_MVP_MATRIX)
-
-        // Retrieve attribute locations for the shader program.
         aPosition = glGetAttribLocation(program, A_POSITION)
-
         uColor = glGetUniformLocation(program, U_COLOR)
     }
 
