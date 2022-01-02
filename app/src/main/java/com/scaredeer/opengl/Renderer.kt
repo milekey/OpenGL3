@@ -202,6 +202,8 @@ class Renderer : GLSurfaceView.Renderer {
 
         // Use this program.
         glUseProgram(program)
+
+        // Retrieve pointer indices to input to variables.
         uMvpMatrix = glGetUniformLocation(program, U_MVP_MATRIX)
         aPosition = glGetAttribLocation(program, A_POSITION)
         uColor = glGetUniformLocation(program, U_COLOR)
