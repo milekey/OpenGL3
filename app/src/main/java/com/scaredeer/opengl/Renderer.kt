@@ -174,7 +174,7 @@ class Renderer : GLSurfaceView.Renderer {
     }
 
     // JavaVM (float) -> DirectBuffer (FloatBuffer) -> OpenGL
-    private val mVertexData: FloatBuffer = ByteBuffer
+    private val vertexData: FloatBuffer = ByteBuffer
         .allocateDirect(TILE.size * BYTES_PER_FLOAT)
         .order(ByteOrder.nativeOrder())
         .asFloatBuffer()
@@ -270,14 +270,14 @@ class Renderer : GLSurfaceView.Renderer {
 
         // Bind our data, specified by the variable vertexData, to the vertex
         // attribute at location of A_POSITION.
-        mVertexData.position(0)
+        vertexData.position(0)
         glVertexAttribPointer(
             aPosition,
             POSITION_COMPONENT_COUNT,
             GL_FLOAT,
             false,
             STRIDE,
-            mVertexData
+            vertexData
         )
         glEnableVertexAttribArray(aPosition)
 
