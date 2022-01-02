@@ -39,12 +39,8 @@ class Renderer : GLSurfaceView.Renderer {
             256f, 256f // 右上
         )
 
-        // Attributes
+        private const val U_MVP_MATRIX = "u_MvpMatrix"
         private const val A_POSITION = "a_Position"
-
-        // Uniforms
-        private const val U_MVP_MATRIX = "u_MVPMatrix"
-        private const val U_COLOR = "u_Color"
 
         private const val VERTEX_SHADER = """
             uniform mat4 $U_MVP_MATRIX;
@@ -53,6 +49,8 @@ class Renderer : GLSurfaceView.Renderer {
                 gl_Position = $U_MVP_MATRIX * $A_POSITION;
             }       
         """
+
+        private const val U_COLOR = "u_Color"
 
         private const val FRAGMENT_SHADER = """
             precision mediump float;
@@ -66,8 +64,8 @@ class Renderer : GLSurfaceView.Renderer {
          * Compiles a shader, returning the OpenGL object ID.
          *
          * @see <a href="https://media.pragprog.com/titles/kbogla/code/AirHockey1/src/com/airhockey/android/util/ShaderHelper.java">OpenGL ES 2 for Android</a>
-         * @param type       GL_VERTEX_SHADER or GL_FRAGMENT_SHADER
-         * @param shaderCode String data of shader code
+         * @param [type]       GL_VERTEX_SHADER or GL_FRAGMENT_SHADER
+         * @param [shaderCode] String data of shader code
          * @return the OpenGL object ID (or 0 if compilation failed)
          */
         private fun compileShader(type: Int, shaderCode: String): Int {
@@ -113,8 +111,8 @@ class Renderer : GLSurfaceView.Renderer {
          * program. Returns the OpenGL program object ID, or 0 if linking failed.
          *
          * @see <a href="https://media.pragprog.com/titles/kbogla/code/AirHockey1/src/com/airhockey/android/util/ShaderHelper.java">OpenGL ES 2 for Android</a>
-         * @param vertexShaderId   OpenGL object ID of vertex shader
-         * @param fragmentShaderId OpenGL object ID of fragment shader
+         * @param [vertexShaderId]   OpenGL object ID of vertex shader
+         * @param [fragmentShaderId] OpenGL object ID of fragment shader
          * @return OpenGL program object ID (or 0 if linking failed)
          */
         private fun linkProgram(vertexShaderId: Int, fragmentShaderId: Int): Int {
@@ -159,7 +157,7 @@ class Renderer : GLSurfaceView.Renderer {
          * Validates an OpenGL program. Should only be called when developing the application.
          *
          * @see <a href="https://media.pragprog.com/titles/kbogla/code/AirHockey1/src/com/airhockey/android/util/ShaderHelper.java">OpenGL ES 2 for Android</a>
-         * @param programObjectId OpenGL program object ID to validate
+         * @param [programObjectId] OpenGL program object ID to validate
          * @return boolean
          */
         private fun validateProgram(programObjectId: Int): Boolean {
@@ -175,10 +173,6 @@ class Renderer : GLSurfaceView.Renderer {
         }
     }
 
-    private var aPosition = 0
-    private var uMVPMatrix = 0
-    private var uColor = 0
-
     // JavaVM (float) -> DirectBuffer (FloatBuffer) -> OpenGL
     private val mVertexData: FloatBuffer = ByteBuffer
         .allocateDirect(TILE.size * BYTES_PER_FLOAT)
@@ -186,13 +180,17 @@ class Renderer : GLSurfaceView.Renderer {
         .asFloatBuffer()
         .put(TILE)
 
-    private val mProjectionMatrix = FloatArray(16)
-    private val mViewMatrix = FloatArray(16)
-    private val mVPMatrix = FloatArray(16)
+    private var aPosition = 0
+    private var uMvpMatrix = 0
+    private var uColor = 0
+
+    private val projectionMatrix = FloatArray(16)
+    private val viewMatrix = FloatArray(16)
+    private val vpMatrix = FloatArray(16)
 
     override fun onSurfaceCreated(gl10: GL10, eglConfig: EGLConfig) {
         Log.v(TAG, "onSurfaceCreated")
-        glClearColor(0.0f, 0.0f, 0.0f, 0.0f)
+        glClearColor(0f, 0f, 0f, 0f)
 
         // Compile the shaders.
         val vertexShader = compileShader(GL_VERTEX_SHADER, VERTEX_SHADER)
@@ -206,24 +204,12 @@ class Renderer : GLSurfaceView.Renderer {
         glUseProgram(program)
 
         // Retrieve uniform locations for the shader program.
-        uMVPMatrix = glGetUniformLocation(program, U_MVP_MATRIX)
-        uColor = glGetUniformLocation(program, U_COLOR)
+        uMvpMatrix = glGetUniformLocation(program, U_MVP_MATRIX)
 
         // Retrieve attribute locations for the shader program.
         aPosition = glGetAttribLocation(program, A_POSITION)
 
-        // Bind our data, specified by the variable vertexData, to the vertex
-        // attribute at location of A_POSITION.
-        mVertexData.position(0)
-        glVertexAttribPointer(
-            aPosition,
-            POSITION_COMPONENT_COUNT,
-            GL_FLOAT,
-            false,
-            STRIDE,
-            mVertexData
-        )
-        glEnableVertexAttribArray(aPosition)
+        uColor = glGetUniformLocation(program, U_COLOR)
     }
 
     override fun onSurfaceChanged(gl10: GL10, width: Int, height: Int) {
@@ -249,7 +235,7 @@ class Renderer : GLSurfaceView.Renderer {
         ピクセルサイズに基くことが可能となる。
          */
         Matrix.frustumM(
-            mProjectionMatrix, 0,
+            projectionMatrix, 0,
             -width / 4f, width / 4f, -height / 4f, height / 4f,
             width / 4f, width / 2f
         )
@@ -263,25 +249,38 @@ class Renderer : GLSurfaceView.Renderer {
         eyeZ = -eyeX となっているわけである。
          */
         Matrix.setLookAtM(
-            mViewMatrix, 0,
+            viewMatrix, 0,
             width / 2f, height / 2f, -width / 2f,
             width / 2f, height / 2f, 1f,
             0f, -1f, 0f
         )
         Matrix.multiplyMM(
-            mVPMatrix, 0,
-            mProjectionMatrix, 0, mViewMatrix, 0
+            vpMatrix, 0,
+            projectionMatrix, 0, viewMatrix, 0
         )
         // Pass the matrix into the shader program.
-        glUniformMatrix4fv(uMVPMatrix, 1, false, mVPMatrix, 0)
+        glUniformMatrix4fv(uMvpMatrix, 1, false, vpMatrix, 0)
     }
 
     override fun onDrawFrame(gl10: GL10) {
         // Clear the rendering surface.
         glClear(GL_COLOR_BUFFER_BIT)
 
-        // Draw a tile.
-        glUniform4f(uColor, 1.0f, 0f, 0f, 1.0f) // 赤色
+        glUniform4f(uColor, 1f, 0f, 0f, 1f) // 赤色
+
+        // Bind our data, specified by the variable vertexData, to the vertex
+        // attribute at location of A_POSITION.
+        mVertexData.position(0)
+        glVertexAttribPointer(
+            aPosition,
+            POSITION_COMPONENT_COUNT,
+            GL_FLOAT,
+            false,
+            STRIDE,
+            mVertexData
+        )
+        glEnableVertexAttribArray(aPosition)
+
         glDrawArrays(GL_TRIANGLE_STRIP, 0, 4) // N 字形の順に描く
     }
 }
